@@ -1,13 +1,12 @@
-pub struct TreeNode<T: std::fmt::Display> {
+use std::rc::Rc;
+
+pub struct TreeNode<T> {
     pub val: T,
     pub left: Option<Box<TreeNode<T>>>,
     pub right: Option<Box<TreeNode<T>>>,
 }
 
-impl<T> TreeNode<T>
-where
-    T: std::fmt::Display,
-{
+impl<T> TreeNode<T> {
     pub fn new(val: T) -> Self {
         Self {
             val,
@@ -34,12 +33,42 @@ where
 
 struct Node<T> {
     val: T,
-    next: Option<Box<Node<T>>>,
+    next: Option<Rc<Node<T>>>,
 }
 
 pub struct LinkedList<T> {
-    head: Option<Box<Node<T>>>,
-    tail: Option<Box<Node<T>>>,
+    head: Option<Rc<Node<T>>>,
+    tail: Option<Rc<Node<T>>>,
+}
+
+impl<T> LinkedList<T> {
+    pub fn new() -> Self {
+        Self {
+            head: None,
+            tail: None,
+        }
+    }
+
+    fn push(self, val: T) -> Self {
+        Self {
+            head: Some(Rc::new(Node {
+                val,
+                next: self.head,
+            })),
+            tail: self.tail,
+        }
+    }
+
+    // build a list by repeatedly pushing
+    pub fn from(vec: Vec<T>) -> Self {
+        let mut list: LinkedList<T> = LinkedList::new();
+        for item in vec.into_iter().rev() {
+            list = list.push(item);
+        }
+        list
+    }
+
+
 }
 
 #[cfg(test)]
@@ -47,7 +76,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn in_traversal() {
+    fn inorder_traversal_test() {
         let mut root = Box::new(TreeNode::new(10));
         root.left = Some(Box::new(TreeNode::new(20)));
         root.right = Some(Box::new(TreeNode::new(13)));
